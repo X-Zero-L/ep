@@ -89,11 +89,65 @@ Fk:loadTranslationTable{
   ["longen"] = "龙恩",
   [":longen"] = "摸牌阶段开始时，你可以放弃摸牌，视为使用一张【五谷丰登】。",
 }
--- 主公技：号令ep，怡宝指定一名角色，势力为ep的角色进行二选一，对该名角色出杀或对怡宝出杀。
+-- 号令，主公技，限定技，出牌阶段限一次，号令ep，怡宝指定一名角色，势力为“怡”的所有角色从以下效果选择一个：
+--[[
+1. 视为对该角色使用一张【杀】；
+2. 视为对你使用一张【杀】。
+]]
+local haoling = fk.CreateActiveSkill{
+  name = "haoling",
+  frequency = Skill.Limited, -- 限定技
+  anim_type = "offensive",
+  pcard_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    local atk_you = {}
+    local atk_target = {}
+    for _, p in ipairs(room:getOtherPlayers(player)) do
+      if p.kingdom ==  "ep_k__ep" and player.isAlive then
+          if room:askForSkillInvoke(p, self.name, {}, "#haoling-invoke::"..player.id) then -- 对你使用一张【杀】
+            -- table.insert(atk_target, p)
+            local card = Fk:cloneCard("slash")
+            card.skillName = self.name
+            room:useCard{
+              card = card,
+              from = p.id,
+              tos = {{ target.id }} ,
+            }
+          else -- 视为对你使用一张【杀】
+            -- table.insert(atk_you, p)
+            local card = Fk:cloneCard("slash")
+            card.skillName = self.name
+            room:useCard{
+              card = card,
+              from = p.id,
+              tos = {{ player.id }} ,
+            }
+          end
+      end
+    end
+  end,
+}
+Fk:loadTranslationTable{
+  ["haoling"] = "号令",
+  [":haoling"] = "主公技，限定技，出牌阶段限一次，指定一名角色，势力为“怡”的所有角色从以下效果选择一个："..
+  "1. 视为对该角色使用一张【杀】；2. 视为对你使用一张【杀】。",
+  ["#haoling-invoke"] = "号令：你可以视为对怡宝指定的角色使用一张【杀】，否则你视为对怡宝使用一张【杀】",
+}
 
 ellye:addSkill(longen)
 ellye:addSkill(huixue)
 ellye:addSkill(longgen)
+ellye:addSkill(haoling)
 
 
 local sanlai = General:new(extension, "ep__sanlai", "ep_k__ep", 4)
