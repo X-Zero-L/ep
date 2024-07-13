@@ -5,6 +5,7 @@ local H = require "packages/hegemony/util"
 
 Fk:loadTranslationTable{
   ["ellye_fans"] = "怡批",
+  ["ep_k__ep"] = "怡"
 }
 
 --[[
@@ -17,7 +18,7 @@ Fk:loadTranslationTable{
 ---@param gender Gender @ 武将性别
 function General:initialize(package, name, kingdom, hp, maxHp, gender)
  --]]
-local ellye = General:new(extension, "ep__ellye", "god", 5)
+local ellye = General:new(extension, "ep__ellye", "ep_k__ep", 5)
 Fk:loadTranslationTable{
   ["ep__ellye"] = "怡宝",
   ["#ep__ellye"] = "龙根",
@@ -95,7 +96,7 @@ ellye:addSkill(huixue)
 ellye:addSkill(longgen)
 
 
-local sanlai = General:new(extension, "ep__sanlai", "god", 4)
+local sanlai = General:new(extension, "ep__sanlai", "ep_k__ep", 4)
 Fk:loadTranslationTable{
   ["ep__sanlai"] = "三来",
   ["#ep__sanlai"] = "钓鱼佬",
@@ -202,7 +203,7 @@ Fk:loadTranslationTable{
 sanlai:addSkill(dawo)
 sanlai:addSkill(diaoyu)
 
-local maxesisn = General:new(extension, "ep__maxesisn", "god", 3, 6)
+local maxesisn = General:new(extension, "ep__maxesisn", "ep_k__ep", 3, 6)
 
 Fk:loadTranslationTable{
   ["ep__maxesisn"] = "麦克西",
@@ -336,7 +337,7 @@ Fk:loadTranslationTable{
 Fk:addSkill(jianchi_active)
 maxesisn:addSkill(jianchi)
 
-local natie = General:new(extension, "ep__natie", "god", 3)
+local natie = General:new(extension, "ep__natie", "ep_k__ep", 3)
 
 Fk:loadTranslationTable{
   ["ep__natie"] = "拿铁",
@@ -441,7 +442,7 @@ Fk:loadTranslationTable{
 natie:addSkill(yewang)
 natie:addSkill(zhidian)
 
-local chali = General:new(extension, "ep__chali", "god", 4)
+local chali = General:new(extension, "ep__chali", "ep_k__ep", 4)
 
 Fk:loadTranslationTable{
   ["ep__chali"] = "查理",
@@ -472,7 +473,7 @@ Fk:loadTranslationTable{
 
 chali:addSkill(longshao)
 
-local ark = General:new(extension, "ep__ark", "god", 4)
+local ark = General:new(extension, "ep__ark", "ep_k__ep", 4)
 
 Fk:loadTranslationTable{
   ["ep__ark"] = "方舟",
@@ -530,7 +531,7 @@ Fk:loadTranslationTable{
 ark:addSkill(nilin)
 ark:addSkill(shinue)
 
-local tomoyo = General:new(extension, "ep__tomoyo", "god", 3)
+local tomoyo = General:new(extension, "ep__tomoyo", "ep_k__ep", 3)
 Fk:loadTranslationTable{
   ["ep__tomoyo"] = "偷摸哟",
   ["#ep__tomoyo"] = "纯情男高",
@@ -604,7 +605,7 @@ Fk:loadTranslationTable{
 tomoyo:addSkill(gaowan)
 tomoyo:addSkill(chunqing)
 
-local sayyiku = General:new(extension, "ep__sayyiku", "god", 3)
+local sayyiku = General:new(extension, "ep__sayyiku", "ep_k__ep", 3)
 
 Fk:loadTranslationTable{
   ["ep__sayyiku"] = "sa酱",
@@ -693,7 +694,7 @@ Fk:loadTranslationTable{
 sayyiku:addSkill(ceping)
 sayyiku:addSkill(yaoshen)
 
-local saneryy = General:new(extension, "ep__saneryy", "god", 3)
+local saneryy = General:new(extension, "ep__saneryy", "ep_k__ep", 3)
 
 Fk:loadTranslationTable{
   ["ep__saneryy"] = "善恶歪歪",
