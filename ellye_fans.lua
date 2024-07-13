@@ -675,7 +675,7 @@ local yaoshen = fk.CreateTriggerSkill{
     local ids, choice = U.askforChooseCardsAndChoice(player, red, {"OK"},
     self.name, "#yaoshen-view", {"Cancel"}, 1, 1, cards)
     if #ids > 0 then
-      player:showCards(ids)
+      room:throwCard(ids, self.name, player, player)
       room:recover{
         who = target,
         num = 1,
