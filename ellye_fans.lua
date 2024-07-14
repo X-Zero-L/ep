@@ -507,10 +507,22 @@ local zizhi = fk.CreateTriggerSkill{
     local choices = {"zizhi_1", "zizhi_2"}
     local choice = room:askForChoice(player, choices, self.name, "#zizhi-ask")
     if choice == "zizhi_1" then
-      room:setPlayerMark(player, "@zizhi", 1)
+      room:setPlayerMark(player, "@@zizhi-turn", 1)
     else
       room:loseHp(player, 1)
     end
+  end,
+}
+
+local zizhi_delay = fk.CreateTriggerSkill{
+  name = "#zizhi_delay",
+  events = {fk.DamageCaused},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and data.to ~= player and player:getMark("@@zizhi-turn") > 0
+  end,
+  on_cost = Util.TrueFunc,
+  on_use = function (self, event, target, player, data)
+    return true
   end,
 }
 
@@ -520,7 +532,11 @@ Fk:loadTranslationTable{
   ["zizhi_1"] = "防止伤害",
   ["zizhi_2"] = "失去体力",
   ["#zizhi-ask"] = "请选择一项：1.本回合你对其他角色造成伤害时，防止之；2. 失去1点体力",
+  ["@@zizhi-turn"] = "自治",
+  ["#zizhi_delay"] = "自治",
 }
+
+zizhi:addRelatedSkill(zizhi_delay)
 
 natie:addSkill(yewang)
 natie:addSkill(zizhi)
