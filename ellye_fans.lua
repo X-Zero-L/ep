@@ -834,10 +834,89 @@ Fk:loadTranslationTable{
   ["@cixiaogui_ji"] = "急",
   ["#cixiaogui_distance"] = "雌小鬼",
 }
-
--- 别急，锁定技，你受到
-
 saneryy:addSkill(cixiaogui)
 
+local aba = General:new(extension, "ep__aba", "ep_k__ep", 3)
+
+Fk:loadTranslationTable{
+  ["ep__aba"] = "阿巴",
+  ["#ep__aba"] = "阿巴",
+  ["designer:ep__aba"] = "怡批",
+  ["cv:ep__aba"] = "怡批",
+  ["illustrator:ep__aba"] = "怡批",
+}
+
+-- 1. k头，"若一名角色使用红色【杀】仅指定唯一其他角色为目标，此牌结算后，你可从手牌中对相同目标使用一张无次数和距离限制的"..
+--  "【杀】。",
+
+local ktou = fk.CreateTriggerSkill{
+  name = "ktou",
+  anim_type = "offensive",
+  events = {fk.CardUseFinished},
+  can_trigger = function(self, event, target, player, data)
+    if not player:hasSkill(self) then return false end
+    if data.card.trueName == "slash" and data.card.color == Card.Red then
+      local targets = TargetGroup:getRealTargets(data.tos)
+      return #targets == 1 and targets[1] ~= player.id and not player.room:getPlayerById(targets[1]).dead
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local targets = TargetGroup:getRealTargets(data.tos)
+    local use = player.room:askForUseCard(player, self.name, "slash", "#ktou-use::" .. targets[1], true,
+      { must_targets = targets, bypass_distances = true, bypass_times = true })
+    if use then
+      self.cost_data = use
+      return true
+    end
+  end,
+  on_use = function(self, event, target, player, data)
+    player.room:useCard(self.cost_data)
+  end,
+}
+
+Fk:loadTranslationTable{
+  ["ktou"] = "k头",
+  [":ktou"] = "若一名角色使用红色【杀】仅指定唯一其他角色为目标，此牌结算后，你可从手牌中对相同目标使用一张无次数和距离限制的【杀】。",
+  ["#ktou-use"] = "k头：对 %dest 使用一张无次数和距离限制的【杀】",
+}
+
+local shouming = fk.CreateActiveSkill{
+  name = "shouming",
+  anim_type = "offensive",
+  max_card_num = 1,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = function(self, to_select, selected)
+    return Fk:getCardById(to_select).sub_type == Card.SubtypeWeapon
+  end,
+  target_filter = function(self, to_select, selected, selected_cards)
+    return #selected == 0 and to_select ~= Self.id
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    if #effect.cards > 0 then
+      room:throwCard(effect.cards, self.name, player)
+    else
+      room:loseHp(player, 1, self.name)
+    end
+    room:damage{
+      from = player,
+      to = target,
+      damage = 1,
+      skillName = self.name,
+    }
+  end,
+}
+
+Fk:loadTranslationTable{
+  ["shouming"] = "授命",
+  [":shouming"] = "出牌阶段限一次，你可以失去1点体力或弃置一张武器牌，并选择一名其他角色，对其造成1点伤害。",
+}
+
+aba:addSkill(ktou)
+aba:addSkill(shouming)
 
 return extension
