@@ -493,7 +493,37 @@ Fk:loadTranslationTable{
   ["#zhidian-invoke"] = "指点：%dest的回合，选择一张牌弃置并根据花色执行对应效果",
 }
 
+-- 自治：锁定技，出牌阶段开始时，你选择一项：1.本回合你对其他角色造成伤害时，防止之；2. 失去1点体力
+local zizhi = fk.CreateTriggerSkill{
+  name = "zizhi",
+  anim_type = "special",
+  frequency = Skill.Compulsory,
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and player.phase == Player.Play
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    local choices = {"zizhi_1", "zizhi_2"}
+    local choice = room:askForChoice(player, choices, self.name, "#zizhi-ask")
+    if choice == "zizhi_1" then
+      room:setPlayerMark(player, "@zizhi", 1)
+    else
+      room:loseHp(player, 1)
+    end
+  end,
+}
+
+Fk:loadTranslationTable{
+  ["zizhi"] = "自治",
+  [":zizhi"] = "锁定技，出牌阶段开始时，你选择一项：1.本回合你对其他角色造成伤害时，防止之；2. 失去1点体力。",
+  ["zizhi_1"] = "防止伤害",
+  ["zizhi_2"] = "失去体力",
+  ["#zizhi-ask"] = "请选择一项：1.本回合你对其他角色造成伤害时，防止之；2. 失去1点体力",
+}
+
 natie:addSkill(yewang)
+natie:addSkill(zizhi)
 natie:addSkill(zhidian)
 
 local chali = General:new(extension, "ep__chali", "ep_k__ep", 4)
@@ -603,13 +633,17 @@ Fk:loadTranslationTable{
   ["illustrator:ep__tomoyo"] = "怡批",
 }
 
--- 高玩，出牌阶段限一次，你可以将一张牌视为【决斗】使用。当你使用【决斗】时，你摸一张牌。
+-- 高玩，出牌阶段限一次，你可以将一张手牌视为【决斗】使用，并摸一张牌。
 local gaowan = fk.CreateViewAsSkill{
   name = "gaowan",
   anim_type = "offensive",
   pattern = "duel",
   card_filter = function(self, to_select, selected)
-    return #selected == 0
+    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Card.PlayerEquip
+  end,
+  before_use = function(self, player)
+    local room = player.room
+    room:drawCards(player, 1, self.name)
   end,
   view_as = function(self, cards)
     if #cards ~= 1 then
@@ -642,7 +676,7 @@ gaowan:addRelatedSkill(gaowan_trigger)
 
 Fk:loadTranslationTable{
   ["gaowan"] = "高玩",
-  [":gaowan"] = "出牌阶段限一次，你可以将一张牌视为【决斗】使用。当你使用【决斗】时，你可以摸一张牌。",
+  [":gaowan"] = "出牌阶段限一次，你可以将一张手牌视为【决斗】使用，并摸一张牌。",
   ["#gaowan_trigger"] = "高玩",
 }
 
@@ -918,5 +952,84 @@ Fk:loadTranslationTable{
 
 aba:addSkill(ktou)
 aba:addSkill(shouming)
+
+local neneko = General:new(extension, "ep__neneko", "ep_k__ep", 3)
+
+Fk:loadTranslationTable{
+  ["ep__neneko"] = "内扣",
+  ["#ep__neneko"] = "内扣",
+  ["designer:ep__neneko"] = "怡批",
+  ["cv:ep__neneko"] = "怡批",
+  ["illustrator:ep__neneko"] = "怡批",
+}
+
+-- 你猜：当你需要使用【闪】，你可以扣置一张手牌作为【闪】使用，然后效果发起者选择是否质疑，然后你展示此牌。
+-- 若其不质疑，则继续结算
+-- 若其质疑，且此牌不是【闪】，则此牌进入弃牌堆，其摸一张牌；若此牌是【闪】，则正常结算，其弃置一张牌。
+
+local nicai = fk.CreateViewAsSkill{
+  name = "nicai",
+  pattern = "jink",
+  anim_type = "defensive",
+  card_filter = function(self, to_select, selected)
+    return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Card.PlayerEquip
+  end,
+  view_as = function(self, cards)
+    if #cards ~= 1 then
+      return nil
+    end
+    local c = Fk:cloneCard("jink")
+    c.skillName = self.name
+    c:addSubcard(cards[1])
+---@diagnostic disable-next-line: inject-field
+    self.cost_data = cards
+    return c
+  end,
+  before_use = function(self, player, use)
+    local room = player.room
+---@diagnostic disable-next-line: undefined-field
+    local cards = self.cost_data
+    local card_id = cards[1]
+    room:moveCardTo(cards, Card.Processing, nil, fk.ReasonPut, self.name, "", false, player.id) -- 移动到处理区（不展示）
+    local targets = TargetGroup:getRealTargets(use.tos)
+    -- 这张牌响应的对象
+    local source = room:getPlayerById(use.from)
+    if targets and #targets > 0 then
+      room:sendLog{
+        type = "#nicai_use",
+        from = player.id,
+        to = targets,
+        arg = use.card.name,
+        arg2 = self.name
+      }
+      room:doIndicate(player.id, targets)
+    else
+      room:sendLog{
+        type = "#nicai_no_target",
+        from = player.id,
+        arg = use.card.name,
+        arg2 = self.name
+      }
+    end
+    local choice = room:askForChoice(source, {"noquestion", "question"}, self.name, "#guhuo-ask::"..player.id..":"..use.card.name)
+    if choice ~= "noquestion" then
+      
+    end
+    room:sendLog{
+      type = "#guhuo_query",
+      from = source.id,
+      arg = choice
+    }
+  end,
+}
+
+Fk:loadTranslationTable{
+  ["nicai"] = "你猜",
+  [":nicai"] = "当你成为【杀】的目标时，你可以扣置一张手牌声明为【闪】，然后效果发起者选择是否质疑，然后你展示此牌。"..
+    "若其质疑，且此牌是【闪】，则其失去1点体力；若其质疑，且此牌不是【闪】，则其摸一张牌。" ..
+    "若其不质疑，且此牌是【闪】，则防止此【杀】对你造成的伤害。",
+}
+
+neneko:addSkill("guhuo")
 
 return extension
