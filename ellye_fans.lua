@@ -603,13 +603,13 @@ Fk:loadTranslationTable{
   ["illustrator:ep__tomoyo"] = "怡批",
 }
 
--- 高玩，出牌阶段限一次，你可以将一张【杀】视为【决斗】使用。
+-- 高玩，出牌阶段限一次，你可以将一张牌视为【决斗】使用。当你使用【决斗】时，你摸一张牌。
 local gaowan = fk.CreateViewAsSkill{
   name = "gaowan",
   anim_type = "offensive",
   pattern = "duel",
   card_filter = function(self, to_select, selected)
-    return #selected == 0 and Fk:getCardById(to_select).trueName == "slash"
+    return #selected == 0
   end,
   view_as = function(self, cards)
     if #cards ~= 1 then
@@ -628,9 +628,22 @@ local gaowan = fk.CreateViewAsSkill{
   end,
 }
 
+local gaowan_trigger = fk.CreateTriggerSkill{
+  name = "#gaowan_trigger",
+  events = {fk.AfterCardUseDeclared},
+  can_trigger = function(self, event, target, player, data)
+    return player:hasSkill(self) and data.card.trueName == "duel"
+  end,
+  on_use = function(self, event, target, player, data)
+    player:drawCards(1, self.name)
+  end,
+}
+gaowan:addRelatedSkill(gaowan_trigger)
+
 Fk:loadTranslationTable{
   ["gaowan"] = "高玩",
-  [":gaowan"] = "出牌阶段限一次，你可以将一张【杀】视为【决斗】使用。",
+  [":gaowan"] = "出牌阶段限一次，你可以将一张牌视为【决斗】使用。当你使用【决斗】时，你可以摸一张牌。",
+  ["#gaowan_trigger"] = "高玩",
 }
 
 -- 纯情，当一名角色成为杀的目标时，当你不为杀的使用者且目标不包括你时，你可以展示一张红色手牌，转移此杀的目标至你。
