@@ -632,7 +632,7 @@ local gaowan_trigger = fk.CreateTriggerSkill{
   name = "#gaowan_trigger",
   events = {fk.AfterCardUseDeclared},
   can_trigger = function(self, event, target, player, data)
-    return player:hasSkill(self) and data.card.trueName == "duel"
+    return player:hasSkill(self) and data.card.trueName == "duel" and target == player
   end,
   on_use = function(self, event, target, player, data)
     player:drawCards(1, self.name)
