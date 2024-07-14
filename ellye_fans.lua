@@ -70,7 +70,7 @@ Fk:loadTranslationTable{
   [":huixue"] = "出牌阶段开始时，你可以回复1点体力并摸一张牌，然后跳过出牌阶段。",
 }
 
--- 龙恩，摸牌阶段开始时，你可以放弃摸牌阶段，视为使用一张【五谷丰登】
+-- 龙恩，摸牌阶段开始时，你可以少摸一张牌，视为使用一张【五谷丰登】
 local longen = fk.CreateTriggerSkill{
   name = "longen",
   anim_type = "drawcard",
@@ -82,12 +82,12 @@ local longen = fk.CreateTriggerSkill{
     local room = player.room
     local cards = target:getCardIds("h")
     room:useVirtualCard("amazing_grace", {}, player, room.alive_players, self.name)
-    data.n = 0 -- 不摸牌
+    data.n = data.n - 1
   end,
 }
 Fk:loadTranslationTable{
   ["longen"] = "龙恩",
-  [":longen"] = "摸牌阶段开始时，你可以放弃摸牌，视为使用一张【五谷丰登】。",
+  [":longen"] = "摸牌阶段开始时，你可以少摸1张牌，视为使用一张【五谷丰登】。",
 }
 -- 号令，主公技，限定技，出牌阶段限一次，号令ep，怡宝指定一名角色，势力为“怡”的所有角色从以下效果选择一个：
 --[[
