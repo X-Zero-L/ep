@@ -641,10 +641,6 @@ local gaowan = fk.CreateViewAsSkill{
   card_filter = function(self, to_select, selected)
     return #selected == 0 and Fk:currentRoom():getCardArea(to_select) ~= Card.PlayerEquip
   end,
-  before_use = function(self, player)
-    local room = player.room
-    room:drawCards(player, 1, self.name)
-  end,
   view_as = function(self, cards)
     if #cards ~= 1 then
       return nil
@@ -654,6 +650,9 @@ local gaowan = fk.CreateViewAsSkill{
     c:addSubcard(cards[1])
     return c
   end,
+  before_use = function(self, player)
+    player:drawCards(1, self.name)
+  end,
   enabled_at_play = function(self, player) -- 出牌阶段限一次
     return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0 and player.phase == Player.Play
   end,
@@ -661,7 +660,7 @@ local gaowan = fk.CreateViewAsSkill{
     return false
   end,
 }
-
+--[[
 local gaowan_trigger = fk.CreateTriggerSkill{
   name = "#gaowan_trigger",
   events = {fk.AfterCardUseDeclared},
@@ -673,6 +672,7 @@ local gaowan_trigger = fk.CreateTriggerSkill{
   end,
 }
 gaowan:addRelatedSkill(gaowan_trigger)
+]]--
 
 Fk:loadTranslationTable{
   ["gaowan"] = "高玩",
