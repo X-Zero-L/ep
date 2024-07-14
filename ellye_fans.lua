@@ -596,7 +596,7 @@ ark:addSkill(shinue)
 
 local tomoyo = General:new(extension, "ep__tomoyo", "ep_k__ep", 3)
 Fk:loadTranslationTable{
-  ["ep__tomoyo"] = "偷摸哟",
+  ["ep__tomoyo"] = "将遗憾写成歌",
   ["#ep__tomoyo"] = "纯情男高",
   ["designer:ep__tomoyo"] = "怡批",
   ["cv:ep__tomoyo"] = "怡批",
