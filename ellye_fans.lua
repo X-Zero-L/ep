@@ -95,7 +95,7 @@ Fk:loadTranslationTable{
 2. 视为对你使用一张【杀】。
 ]]
 local haoling = fk.CreateActiveSkill{
-  name = "haoling",
+  name = "haoling$",
   frequency = Skill.Limited, -- 限定技
   anim_type = "offensive",
   pcard_num = 0,
@@ -150,7 +150,7 @@ ellye:addSkill(longgen)
 ellye:addSkill(haoling)
 
 
-local sanlai = General:new(extension, "ep__sanlai", "ep_k__ep", 4)
+local sanlai = General:new(extension, "ep__sanlai", "ep_k__ep", 3)
 Fk:loadTranslationTable{
   ["ep__sanlai"] = "三来",
   ["#ep__sanlai"] = "钓鱼佬",
@@ -518,11 +518,20 @@ local longshao = fk.CreateTriggerSkill{
     player.room:drawCards(player, player.maxHp, self.name)
   end,
 }
-
-
+local longshao_maxcards = fk.CreateMaxCardsSkill{
+  name = "#longshao_maxcards",
+  correct_func = function(self, player)
+    if player:hasSkill(self) then
+      return player.maxHp
+    else
+      return 0
+    end
+  end,
+}
+longshao:addRelatedSkill(longshao_maxcards)
 Fk:loadTranslationTable{
   ["longshao"] = "龙少",
-  [":longshao"] = "锁定技，游戏开始时，你摸X张牌（X为你的体力上限）。",
+  [":longshao"] = "锁定技，1.你的手牌上限+X。2.游戏开始时，你摸X张牌。（X为你的体力上限）",
 }
 
 chali:addSkill(longshao)
