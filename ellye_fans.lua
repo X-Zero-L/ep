@@ -1049,7 +1049,7 @@ Fk:loadTranslationTable{
 neneko:addSkill("guhuo")
 
 
-local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 6)
+local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 5)
 
 Fk:loadTranslationTable{
   ["ep__yusan"] = "雨伞",
