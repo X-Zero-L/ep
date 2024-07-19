@@ -1053,7 +1053,7 @@ local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 5)
 
 Fk:loadTranslationTable{
   ["ep__yusan"] = "雨伞",
-  ["#ep__yusan"] = "龟男",
+  ["#ep__yusan"] = "和解",
   ["designer:ep__yusan"] = "怡批",
   ["cv:ep__yusan"] = "怡批",
   ["illustrator:ep__yusan"] = "怡批",
@@ -1131,8 +1131,8 @@ Fk:loadTranslationTable{
   [":fangzu&"] = "出牌阶段限一次，你可以获取雨伞的一张手牌",
 }
 
-local guinan = fk.CreateTriggerSkill{
-  name = "guinan",
+local hejie = fk.CreateTriggerSkill{
+  name = "hejie",
   events = {fk.Damaged},
   mute = true,
   frequency = Skill.Compulsory,
@@ -1171,11 +1171,11 @@ local guinan = fk.CreateTriggerSkill{
 }
 
 Fk:loadTranslationTable{
-  ["guinan"] = "龟男",
-  [":guinan"] = "锁定技，当你受到其他角色造成的1点伤害后，你与其各摸一张牌",
+  ["hejie"] = "和解",
+  [":hejie"] = "锁定技，当你受到其他角色造成的1点伤害后，你与其各摸一张牌",
 }
 
-yusan:addSkill(guinan)
+yusan:addSkill(hejie)
 
 -- 工资，锁定技，摸牌阶段多摸2张牌
 local gongzi = fk.CreateTriggerSkill{
