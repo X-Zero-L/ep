@@ -1133,37 +1133,46 @@ Fk:loadTranslationTable{
 
 local guinan = fk.CreateTriggerSkill{
   name = "guinan",
+  events = {fk.Damaged},
   mute = true,
   frequency = Skill.Compulsory,
-  events = {fk.DamageInflicted},
   can_trigger = function(self, event, target, player, data)
-    return target == player and player:hasSkill(self) and data.from and not data.from.dead
+    return target == player and player:hasSkill(self) and data.from and data.from ~= data.to and not (data.from.dead or data.to.dead)
+  end,
+  on_trigger = function(self, event, target, player, data)
+---@diagnostic disable-next-line: inject-field
+    self.cancel_cost = false
+    for i = 1, data.damage do
+      if i > 1 and self.cancel_cost or not self:triggerable(event, target, player, data) then break end
+      self:doCost(event, target, player, data)
+    end
+  end,
+  on_cost = function(self, event, target, player, data)
+    local to = event == fk.Damage and data.to or data.from
+    local room = player.room
+    room:doIndicate(player.id, {to.id})
+    return true
   end,
   on_use = function(self, event, target, player, data)
     local room = player.room
-    room:notifySkillInvoked(player, self.name, "negative")
-    local from = data.from
-    local choices = {"draw1"}
-    if from:isWounded() then
-      table.insert(choices, "recover")
-    end
-    local choice = room:askForChoice(from, choices, self.name)
-    if choice == "recover" then
-      room:recover({
-        who = from,
-        num = 1,
-        recoverBy = from,
-        skillName = self.name
-      })
-    else
-      from:drawCards(1, self.name)
+    player:broadcastSkillInvoke(self.name)
+    room:notifySkillInvoked(player, self.name, event == fk.Damaged and "masochism" or "drawcard")
+    local tos = {player.id}
+    table.insertIfNeed(tos, data.from.id)
+    table.insertIfNeed(tos, data.to.id)
+    room:sortPlayersByAction(tos)
+    for _, pid in ipairs(tos) do
+      local to = room:getPlayerById(pid)
+      if not to.dead then
+        room:drawCards(to, 1, self.name)
+      end
     end
   end
 }
 
 Fk:loadTranslationTable{
   ["guinan"] = "龟男",
-  [":guinan"] = "锁定技，当你受到伤害时，伤害来源选择一项：1.摸一张牌；2.回复1点体力。"
+  [":guinan"] = "锁定技，当你受到其他角色造成的1点伤害后，你与其各摸一张牌",
 }
 
 yusan:addSkill(guinan)
@@ -1173,15 +1182,19 @@ local gongzi = fk.CreateTriggerSkill{
   name = "gongzi",
   anim_type = "drawcard",
   frequency = Skill.Compulsory,
-  events = {fk.DrawNCards},
+  events = {fk.EventPhaseStart},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self)
+      and player.phase == Player.Finish
+  end,
   on_use = function(self, event, target, player, data)
-    data.n = data.n + 2
+    player:drawCards(2, self.name)
   end,
 }
 
 Fk:loadTranslationTable{
   ["gongzi"] = "工资",
-  [":gongzi"] = "锁定技，摸牌阶段多摸2张牌",
+  [":gongzi"] = "锁定技，结束阶段开始时，你摸两张牌。",
 }
 
 yusan:addSkill(gongzi)
