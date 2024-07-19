@@ -1048,4 +1048,124 @@ Fk:loadTranslationTable{
 
 neneko:addSkill("guhuo")
 
+
+local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 10)
+
+Fk:loadTranslationTable{
+  ["ep__yusan"] = "雨伞",
+  ["#ep__yusan"] = "龟男",
+  ["designer:ep__yusan"] = "怡批",
+  ["cv:ep__yusan"] = "怡批",
+  ["illustrator:ep__yusan"] = "怡批",
+}
+
+-- 1. 房租，每名角色出牌阶段限一次，其可以获取你的一张手牌。（只作为一个占位的技能）
+local fangzu = fk.CreateActiveSkill{
+  name = "fangzu",
+  anim_type = "support",
+  pcard_num = 0,
+  target_num = 0,
+  can_use = function(self, player)
+    return false
+  end,
+  card_filter = Util.FalseFunc,
+  on_use = function(self, room, effect)
+  end,
+}
+
+local fangzu_trigger = fk.CreateTriggerSkill{
+  name = "#fangzu_trigger",
+  refresh_events = {fk.GameStart, fk.EventAcquireSkill, fk.EventLoseSkill, fk.Deathed},
+  can_refresh = function(self, event, target, player, data)
+    if event == fk.EventAcquireSkill or event == fk.EventLoseSkill then
+      return data == self
+    elseif event == fk.Deathed then
+      return player:hasSkill(self, true, true)
+    end
+  end,
+  on_refresh = function(self, event, target, player, data)
+    local room = player.room
+    if table.every(room.alive_players, function(p) return not p:hasSkill(fangzu, true) or p == player end) then
+      if player:hasSkill("fangzu&", true, true) then
+        room:handleAddLoseSkills(player, "-fangzu&", nil, false, true)
+      end
+    else
+      if not player:hasSkill("fangzu&", true, true) then
+        room:handleAddLoseSkills(player, "fangzu&", nil, false, true)
+      end
+    end
+  end,
+}
+
+local fangzu_active = fk.CreateActiveSkill{
+  name = "fangzu&",
+  anim_type = "support",
+  card_num = 0,
+  target_num = 1,
+  can_use = function(self, player)
+    return player:usedSkillTimes(self.name, Player.HistoryPhase) == 0
+  end,
+  card_filter = Util.FalseFunc,
+  target_filter = function(self, to_select, selected)
+    return #selected == 0 and to_select ~= Self.id and Fk:currentRoom():getPlayerById(to_select):hasSkill("fangzu")
+  end,
+  on_use = function(self, room, effect)
+    local player = room:getPlayerById(effect.from)
+    local target = room:getPlayerById(effect.tos[1])
+    if target:isNude() or target.dead then return end
+    -- 获取目标的一张牌
+    local id = room:askForCardChosen(player, target, "h", self.name)
+    if id then
+      room:obtainCard(player, id, true)
+    end
+  end,
+}
+Fk:addSkill(fangzu_active)
+fangzu:addRelatedSkill(fangzu_trigger)
+yusan:addSkill(fangzu)
+Fk:loadTranslationTable{
+  ["fangzu"] = "房租",
+  [":fangzu"] = "每名角色出牌阶段限一次，其可以获取你的一张手牌。",
+  ["fangzu&"] = "房租",
+  ["#fangzu&"] = "房租：你可以获取 %src 的一张手牌",
+  [":fangzu&"] = "出牌阶段限一次，你可以获取雨伞的一张手牌",
+}
+
+local guinan = fk.CreateTriggerSkill{
+  name = "guinan",
+  mute = true,
+  frequency = Skill.Compulsory,
+  events = {fk.DamageInflicted},
+  can_trigger = function(self, event, target, player, data)
+    return target == player and player:hasSkill(self) and data.from and not data.from.dead
+  end,
+  on_use = function(self, event, target, player, data)
+    local room = player.room
+    room:notifySkillInvoked(player, self.name, "negative")
+    local from = data.from
+    local choices = {"draw1"}
+    if from:isWounded() then
+      table.insert(choices, "recover")
+    end
+    local choice = room:askForChoice(from, choices, self.name)
+    if choice == "recover" then
+      room:recover({
+        who = from,
+        num = 1,
+        recoverBy = from,
+        skillName = self.name
+      })
+    else
+      from:drawCards(1, self.name)
+    end
+  end
+}
+
+Fk:loadTranslationTable{
+  ["guinan"] = "龟男",
+  [":guinan"] = "锁定技，当你受到伤害时，伤害来源选择一项：1.摸一张牌；2.回复1点体力。"
+}
+
+yusan:addSkill(guinan)
+
 return extension
