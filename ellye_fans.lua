@@ -1049,7 +1049,7 @@ Fk:loadTranslationTable{
 neneko:addSkill("guhuo")
 
 
-local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 10)
+local yusan = General:new(extension, "ep__yusan", "ep_k__ep", 6)
 
 Fk:loadTranslationTable{
   ["ep__yusan"] = "雨伞",
@@ -1167,5 +1167,23 @@ Fk:loadTranslationTable{
 }
 
 yusan:addSkill(guinan)
+
+-- 工资，锁定技，摸牌阶段多摸2张牌
+local gongzi = fk.CreateTriggerSkill{
+  name = "gongzi",
+  anim_type = "drawcard",
+  frequency = Skill.Compulsory,
+  events = {fk.DrawNCards},
+  on_use = function(self, event, target, player, data)
+    data.n = data.n + 2
+  end,
+}
+
+Fk:loadTranslationTable{
+  ["gongzi"] = "工资",
+  [":gongzi"] = "锁定技，摸牌阶段多摸2张牌",
+}
+
+yusan:addSkill(gongzi)
 
 return extension
